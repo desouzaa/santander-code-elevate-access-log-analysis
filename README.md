@@ -35,9 +35,9 @@ Isso facilita:
 
 - Adaptar para diferentes fontes de dados (não apenas o log fornecido);
 - Parametrizar o nome da execução, o nome das tabelas geradas e a origem dos dados;
-- Realizar extrações tanto de arquivos via HTTP quanto de APIs públicas.
+- Realizar extrações tanto de arquivos via HTTP de Uploads realizados manualmente.
 
-Como mencionado anteriormente, por se tratar de um projeto público e desenvolvido em ambiente limitado (**Databricks Community Edition**), foi mantida a simplicidade no acesso às APIs públicas, focando apenas em **requisições do tipo GET sem autenticação**.  
+Como mencionado anteriormente, por se tratar de um projeto público e desenvolvido em ambiente limitado (**Databricks Community Edition**), foi mantida alguns trechos de códigos que funcionam melhor nessa versão do databricks, não sendo recomendado rodar o código em ambiente oficial e atual.
 Também foi considerado o uso de arquivos via upload para o **FileStore** do Databricks, simulando uma estrutura de Data Lake simplificada.
 
 ---
@@ -168,12 +168,12 @@ etl = ETLPipeline(spark, **params)
 | Parâmetro             | Obrigatório | Tipo    | Descrição                                                                                                                                                                                                                       |
 |-----------------------|-------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `pipeline_name`       | Sim         | String  | Nome do pipeline. Não deve conter espaços ou caracteres especiais.                                                                                                                                                              |
-| `url`                 | Não*        | String  | URL da API ou do arquivo. Obrigatório somente se o `source` for `API` ou `URL`. Não é necessário se `source` for `UPLOADED`.                                                                                                     |
+| `url`                 | Não*        | String  | URL para acesso ao arquivo. Obrigatório somente se o `source` for `URL`. Não é necessário se `source` for `UPLOADED`.                                                                                                     |
 | `table_name_bronze`   | Sim         | String  | Nome da tabela a ser criada na camada Bronze.                                                                                                                                                                                    |
 | `table_name_silver`   | Sim         | String  | Nome da tabela a ser criada na camada Silver.                                                                                                                                                                                    |
 | `table_name_gold`     | Sim         | String  | Nome da tabela a ser criada na camada Gold.                                                                                                                                                                                      |
-| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo. Para `URL`, deve incluir extensão `.csv` ou `.txt`. Para `API`, será o nome da pasta onde o Delta será salvo (sem extensão).           |
-| `source`              | Sim         | String  | Origem dos dados. <br>• `API`: faz uma requisição GET a uma API pública. <br>• `URL`: copia arquivo de uma URL pública. <br>• `UPLOADED`: lê arquivo enviado manualmente via FileStore do Databricks Community.                 |
+| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo. Para `URL`, deve incluir extensão `.csv` ou `.txt`.           |
+| `source`              | Sim         | String  | Origem dos dados. <br>• `URL`: copia arquivo de uma URL pública. <br>• `UPLOADED`: lê arquivo enviado manualmente via FileStore do Databricks Community.                 |
 | `is_log`              | Sim         | Boolean | Indica se o arquivo segue o formato padrão Apache Web Server Log (WSL). <br>• `True`: é um log Apache. <br>• `False`: outro tipo de dado.                                                                                        |
 | `sql_silver`          | Sim         | String  | Consulta SQL contendo as regras de transformação para geração da tabela Silver.                                                                                                                                                 |
 | `sql_gold`            | Sim         | String  | Consulta SQL contendo as regras de transformação para geração da tabela Gold.                                                                                                                                                   |
