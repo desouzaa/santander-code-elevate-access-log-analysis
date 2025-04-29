@@ -1,5 +1,14 @@
 # ♨️ Web Server Log Analysis - Code Elevate Santander
 
+## Sobre o Projeto
+
+- **Autor:** Rafael Guilherme de Souza @desouzaa
+- **Data de criação:** 25 de abril de 2025
+- **Última atualização:** 29 de abril de 2025
+- **Desafio:** Code Elevate Santander
+- **Contato:** rafaellsouzah@gmail.com
+
+
 ## Descrição
 
 Este projeto simula um fluxo de ETL para tratar dados de logs de servidores web, estruturando-os em camadas para posterior geração de métricas analíticas.
@@ -31,16 +40,15 @@ A estrutura do código foi construída seguindo princípios de:
 - **Reutilização de Código**;
 - **Separação de Responsabilidades**.
 
-Isso facilita:
+O objetivo principal é que o pipeline funcione de forma **genérica e escalável**, padronizando toda a ingestão e transformação de dados, onde o engenheiro de dados precisa apenas:
 
-- Adaptar para diferentes fontes de dados (não apenas o log fornecido);
-- Parametrizar o nome da execução, o nome das tabelas geradas e a origem dos dados;
-- Realizar extrações tanto de arquivos via HTTP de Uploads realizados manualmente.
+- Parametrizar a origem do dado (`source`);
+- Definir (se necessário) as regras SQL de transformação para Silver e Gold.
 
-Como mencionado anteriormente, por se tratar de um projeto público e desenvolvido em ambiente limitado (**Databricks Community Edition**), foi mantida alguns trechos de códigos que funcionam melhor nessa versão do databricks, não sendo recomendado rodar o código em ambiente oficial e atual.
-Também foi considerado o uso de arquivos via upload para o **FileStore** do Databricks, simulando uma estrutura de Data Lake simplificada.
+Além disso:
+- Se o parâmetro `is_log` estiver configurado como `True`, **não é necessário informar a regra SQL para geração da Silver**, pois o pipeline já reconhece o padrão de log (Apache Web Server Log) e aplica um tratamento padrão de extração.
+- Isso garante agilidade no desenvolvimento, menos erros manuais, e promove a padronização em diferentes projetos.
 
----
 
 ## Benefícios do Projeto
 
