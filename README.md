@@ -89,7 +89,7 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 ├── README.md                  #Documentação do projeto
 ```
 
-## 📦 Instalação e Configuração do Ambiente
+## Instalação e Configuração do Ambiente
 
 1. **Criar Conta no Databricks:**
    - Acesse [Databricks Community Edition](https://community.cloud.databricks.com) e crie uma conta gratuita.
@@ -109,16 +109,14 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 4. **Upload do Arquivo de Log (opcional):**
    - Clique "Data" → "Add or Upload Data".
    - Faça upload do arquivo de log (caso não utilize a URL pública fornecida).
-   - 
    - ![Imagem Upload](./documentation/upload_image_1.png)
-
    - ![Imagem Upload 2](./documentation/upload_image_2.png)
 
 5. **Abra o Notebook Run.py:**
    - Clique no notebook "Run.py" pois é ele que será usado para executar o ETL.
    
 
-## 🏃‍♂️ Como Executar o Projeto
+## Como Executar o Projeto
 
 1. **Importar o Código do Pipeline:**
 
@@ -127,58 +125,105 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 %run ./etl_pipeline
 ```
 
-# Exemplo 1 de instância da pipeline
+
+2. **Exemplo 1 de como parametrizar as informações:**
 
 ```python
 #Crie uma instância da Classe ETLPipeline, onde cada parâmetro passado é os dados do ETL que irá rodar
 etl = ETLPipeline(spark, 
-    pipeline_name = 'nome_do_pipeline' #Nome do ETL pipeline que irá ser executado
-    source= 'URL',  # Aqui existe 3 opções para rodar, 'API', 'UPLOADED', 'URL'.
-    url='https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt',  # URL que contém arquivo de LOG, e que permita acesso anônimo. 
+    pipeline_name = 'nome_do_pipeline' 
+    source= 'URL',  
+    url='https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt',  
     table_name_bronze = "b_access_logs",
     table_name_silver = "s_access_logs",
     table_name_gold = "g_access_logs",
     file_name = "access_log.txt",
     is_log = True,
-    sql_silver = """  SQL AQUI  """,
-    sql_gold = """  SQL AQUI  """
+    sql_silver = """  REGRA SQL AQUI  """,
+    sql_gold = """ REGRA SQL AQUI  """
 )
 ```
 
-# Exemplo 2 de instância da pipeline
+3. **Exemplo 2 de como parametrizar as informações:**
 
 ```python
 params = {
     "pipeline_name": "access_log",
+    "source": "URL",
     "url": "https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt",
     "table_name_bronze": "b_access_logs",
     "table_name_silver": "s_access_logs",
     "table_name_gold": "g_access_logs",
     "file_name": "access_log.txt",
-    "source": "URL",
     "is_log": True,
-    "sql_silver": "",
-    "sql_gold": ""
+    "sql_silver": """ REGRA SQL AQUI  """,
+    "sql_gold":  """ REGRA SQL AQUI  """
 }
 
 etl = ETLPipeline(spark, **params)
 ```
 
-3. **Descrição dos parâmetros para ETLPipeline**
+4. **Descrição dos parâmetros para ETLPipeline**
    
-   - pipeline_name: (Obrigatório) - String - Nome que irá ser dado ao ETL, não deve conter espaços e caracteres especiais
-   - url: (Opcional) - String - Caso o Source seja 'UPLOADED' não é obrigatório o parâmetro, nos demais casos é. Contém a URL para API ou acesso ao arquivo.
-   - table_name_bronze: (Obrigatório) - String - Nome da tabela a ser criada na camdada bronze
-   - table_name_silver: (Obrigatório) - String - Nome da tabela a ser criada na camdada silver
-   - table_name_gold: (Obrigatório) - String - Nome da tabela a ser criada na camdada gold
-   - file_name: (Obrigatório) - String - Nome do arquivo a ser processado. Quando source 'UPLOADED', o file_name deverá representar exatamente o nome do arquivo que foi feito o upload. Quando o source 'URL', deverá ser .csv ou .txt, o que melhor se adequar a situação, e quando source 'API' os dados serão salvos em formato delta, não sendo necessário escrever a terminação, apenas o nome escolhido para a pasta do delta.
-   - Source (Obrigatório):
-     - API: Fazer uma requisição GET em uma API pública, sem autenticação.
-     - URL: Capturar dado dentro de uma URL pública, usando o copy.
-     - UPLOADED: Para capturar arquivo contido dentro do filestore do databricks community, ou seja, feito upload manual.
-   - is_log: (Obrigatório):
-     - True: Se arquivo a ser processado é um log no formato padrão Apache WSL (Apache Web Server Log).
-     - False: Se arquivo a ser processado não é um log no formato padrão Apache WSL (Apache Web Server Log).
-   - sql_silver: (Obrigatório) - String - Query SQL com regras para criação da tabela silver
-   - sql_gold": (Obrigatório) - String - Query SQL com regras para criação da tabela gold
+| Parâmetro             | Obrigatório | Tipo    | Descrição                                                                                                                                                                                                                       |
+|-----------------------|-------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `pipeline_name`       | Sim         | String  | Nome do pipeline. Não deve conter espaços ou caracteres especiais.                                                                                                                                                              |
+| `url`                 | Não*        | String  | URL da API ou do arquivo. Obrigatório somente se o `source` for `API` ou `URL`. Não é necessário se `source` for `UPLOADED`.                                                                                                     |
+| `table_name_bronze`   | Sim         | String  | Nome da tabela a ser criada na camada Bronze.                                                                                                                                                                                    |
+| `table_name_silver`   | Sim         | String  | Nome da tabela a ser criada na camada Silver.                                                                                                                                                                                    |
+| `table_name_gold`     | Sim         | String  | Nome da tabela a ser criada na camada Gold.                                                                                                                                                                                      |
+| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo. Para `URL`, deve incluir extensão `.csv` ou `.txt`. Para `API`, será o nome da pasta onde o Delta será salvo (sem extensão).           |
+| `source`              | Sim         | String  | Origem dos dados. <br>• `API`: faz uma requisição GET a uma API pública. <br>• `URL`: copia arquivo de uma URL pública. <br>• `UPLOADED`: lê arquivo enviado manualmente via FileStore do Databricks Community.                 |
+| `is_log`              | Sim         | Boolean | Indica se o arquivo segue o formato padrão Apache Web Server Log (WSL). <br>• `True`: é um log Apache. <br>• `False`: outro tipo de dado.                                                                                        |
+| `sql_silver`          | Sim         | String  | Consulta SQL contendo as regras de transformação para geração da tabela Silver.                                                                                                                                                 |
+| `sql_gold`            | Sim         | String  | Consulta SQL contendo as regras de transformação para geração da tabela Gold.                                                                                                                                                   |
+
+
+5. **Execução do Pipeline ETL** 
+
+Após instanciar a classe `ETLPipeline`, você pode executar o pipeline completo ou controlar o fluxo de execução por etapas usando o método `execute_etl(step)`.
+
+Exemplo de execução Completa
+
+```python
+etl.execute_etl(4)
+```
+
+
+#### Significado do Parâmetro `step`
+
+| `step` | Etapas Executadas                                                                 |
+|--------|------------------------------------------------------------------------------------|
+| 1      | `source_to_landing()`                                                             |
+| 2      | `source_to_landing()` → `landing_to_bronze()`                                     |
+| 3      | `source_to_landing()` → `landing_to_bronze()` → `bronze_to_silver()` |
+| 4      | `source_to_landing()` → `landing_to_bronze()` → `bronze_to_silver()` → `silver_to_gold()` |
+
+---
+
+#### Execução de Etapas Individualmente
+
+Você também pode executar cada etapa do pipeline de forma isolada.
+
+####  1. Extração da Fonte para a Landing
+```python
+etl.source_to_landing()
+```
+
+####  2. Landing → Bronze
+```python
+etl.landing_to_bronze()
+```
+
+####  3. Bronze → Silver
+
+```python
+etl.bronze_to_silver()
+```
+####  4. Silver → Gold
+```python
+etl.silver_to_gold()
+```
+
+
 
