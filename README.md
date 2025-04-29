@@ -11,18 +11,20 @@
 
 ## Descrição
 
-Este projeto simula um fluxo de ETL para tratar dados de logs de servidores web, estruturando-os em camadas para posterior geração de métricas analíticas.
+Este projeto foi desenvolvido para atender ao desafio proposto no **Santander Code Elevate**. Ele contém todo o código necessário para realizar pipelines de **ETL (Extração, Transformação e Carga)** dos dados de log fornecidos. .
+
+A solução foi projetada de forma **padronizada e reutilizável**, com o objetivo de promover **organização, escalabilidade e facilidade de manutenção**. Ao adotar boas práticas de engenharia de dados, o pipeline torna-se robusto e aplicável a diferentes cenários além do desafio em questão.
 
 As ferramentas escolhidas para executar a tarefa foram o **Databricks Community Edition** em conjunto com o **Delta Lake** para armazenamento dos dados, pelos seguintes motivos:
 
 - **Databricks** é uma plataforma focada em análise de dados de **Big Data**, com processamento distribuído em clusters e **Spark nativo**, o que atende diretamente aos requisitos da tarefa, sendo também uma das melhores opções para esse tipo de processamento.
-- Em comparação com o uso do **Docker**, o Databricks requer muito menos esforço de configuração, pois oferece clusters de fácil criação sem a necessidade de instalação manual do Spark ou de gerenciamento de dependências.
+- Em comparação com o uso do **Docker**, o Databricks requer muito menos esforço de configuração, pois oferece clusters de fácil criação sem a necessidade de instalação manual do Spark, python e outras dependências.
 - O **Delta Lake** é suportado nativamente pelo Databricks, o que proporciona vantagens como transações ACID, versionamento de dados e maior eficiência nas consultas. Isso torna a combinação **Databricks + Delta Lake** mais adequada do que utilizar bancos de dados relacionais ou NoSQL para este cenário.
 
-Como o ambiente utilizado é o **Databricks Community Edition** (versão gratuita, não voltada para produção), algumas adaptações no código foram necessárias para simular um ambiente produtivo.  
-Entre as adaptações, destacam-se:
+Como o ambiente utilizado é o **Databricks Community Edition** (versão gratuita, não voltada para produção), algumas adaptações no código foram necessárias para simular um ambiente produtivo, e também algumas formas de tratar os arquivos e código foi criado com foco na utilização dentro do ambiente community apenas.  
 
-- Utilização do **FileStore** nativo do Databricks para armazenamento dos dados, em vez de um Data Lake externo como S3 ou Azure Data Lake.
+No projeto temos alguns pontos de atenção:
+- Utilização do **FileStore HDFS** nativo do Databricks para armazenamento dos dados, em vez de um Data Lake externo como S3 ou Azure Data Lake, para facilitar a resolução do desafio, pois a versão community não permite realizar mounts com Data Lakes, ou utilizar secrets.
 - Criação de um **Storage Account** na **Azure**, contendo um **Blob Storage** onde o arquivo de log foi disponibilizado publicamente, permitindo que o pipeline consuma o log diretamente via URL, além da opção de realizar upload manual para o Databricks.
 
 Essas escolhas visaram garantir praticidade, atender todos os requisitos do desafio e manter boas práticas de engenharia de dados mesmo em ambiente de simulação.
@@ -42,11 +44,13 @@ A estrutura do código foi construída seguindo princípios de:
 
 O objetivo principal é que o pipeline funcione de forma **genérica e escalável**, padronizando toda a ingestão e transformação de dados, onde o engenheiro de dados precisa apenas:
 
-- Parametrizar a origem do dado (`source`);
+- Parametrizar a origem do dado
+- Parametrizar as nomenclaturas de tabelas desejadas
+- Parametrizar nome do pipeline e do arquivo a ser usado;
 - Definir (se necessário) as regras SQL de transformação para Silver e Gold.
 
 Além disso:
-- Se o parâmetro `is_log` estiver configurado como `True`, **não é necessário informar a regra SQL para geração da Silver**, pois o pipeline já reconhece o padrão de log (Apache Web Server Log) e aplica um tratamento padrão de extração.
+- Se o parâmetro `is_log` estiver configurado como `True`, **não é necessário informar a regra SQL para geração da Silver**, pois o pipeline já reconhece o padrão de log (Web Server Apache Log) e aplica um tratamento padrão de extração.
 - Isso garante agilidade no desenvolvimento, menos erros manuais, e promove a padronização em diferentes projetos.
 
 
@@ -93,48 +97,84 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 ```plaintext
 /
 ├── etl_pipeline.py           #Funções principais do pipeline ETL
-├── Run.py                    #Script de execução parametrizada
+├── run.py                    #Script de execução parametrizada
 ├── README.md                  #Documentação do projeto
+├── documentation                  #Diretório com arquivos de documentação usados no README.md
 ```
 
 ## Instalação e Configuração do Ambiente
 
 1. **Criar Conta no Databricks:**
    - Acesse [Databricks Community Edition](https://community.cloud.databricks.com) e crie uma conta gratuita.
+   - ![create](./documentation/create_acc.png)
+   - Siga o passo a passo indiccado no site
 
 2. **Criar um Cluster:**
-   - Após logar, clique em "Clusters" → "Create Cluster".
+   - Após logar, no menu lateral esquerdo, clique em  "Compute"
+   - ![compute](./documentation/compute.png)
+   - Após entrar na aba "Compute", no lado direto clice em "Create Compute".
+   - ![createcompute](/documentation/create_compute.png)
    - Nomeie o cluster (por exemplo, `code-elevate-cluster`).
-   - Deixe a configuração padrão e clique em "Create Cluster".
+   - Deixe a configuração padrão e clique em "Create Compute".
 
 3. **Importar os Arquivos:**
    - Acesse "Workspace" → "Users" → [Seu Usuário].
-   - Clique com botão direito → "Import".
+   - ![users](./documentation/users.png)
+   - Clique com botão direito sobre alguma parte em branco da página → "Import".
    - Importe os arquivos:
      - `etl_pipeline.py`
-     - `Run.py`
+     - `run.py`
+   - ![Import](./documentation/import.png)
+   - Talvez seja necessário importar um arquivo de cada vez!
 
 4. **Upload do Arquivo de Log (opcional):**
-   - Clique "Data" → "Add or Upload Data".
+   - No arquivo run.py, já há um exemplo e dados de configuração dos parâmetros para utilizar a extração via HTTP, mas se preferir por executar utilizando o Upload manual via databricks, só seguir os seguintes passos abaixo
+   - No canto superior esquerdo do Databricks, clique em  "+ New" → "Add or Upload Data".
+   - ![adddata](./documentation/add_data.png)
    - Faça upload do arquivo de log (caso não utilize a URL pública fornecida).
-   - ![Imagem Upload](./documentation/upload_image_1.png)
-   - ![Imagem Upload 2](./documentation/upload_image_2.png)
+   - ![adddata2](./documentation/add_data_2.png)
 
-5. **Abra o Notebook Run.py:**
-   - Clique no notebook "Run.py" pois é ele que será usado para executar o ETL.
-   
+5. **Informações Adicionais:**
+   - Link para URL com arquivo: "https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt"
+   - O tipo de arquivo, terminação do file_name, pode ser .csv ou .txt para dados extraídos via URL ou UPLOADED.
+   - O notebook 'run.py' já irá vir configurado para rodar, e com detalhes descritivos de cada etapa em comentários e células markdwown.
+  
 
 ## Como Executar o Projeto
 
-1. **Importar o Código do Pipeline:**
+1. **Abra o Notebook run.py:**
+   - Clique no notebook "run.py" pois é ele que será usado para executar o ETL.
+
+2. **Importar o conteúdo do ETLPipeline:**
+
+   - Rode a primeira célula, que contém o seguinte código:
 
 ```python
-#Rode a celular que contém esse conteúdo antes de todo o restante do código.
+#Rode a  que contém esse conteúdo antes de todo o restante do código.
 %run ./etl_pipeline
 ```
 
+3. **Exemplos de como parametrizar as informações:**
+ - Para parametrizar os dados do ETL temos duas formas de passar os parâmetros, escolha a de sua preferência:.
+ - Dentro do notebook 'run.py', a primeira forma já está configurada para ser executada
 
-2. **Exemplo 1 de como parametrizar as informações:**
+```python
+#Crie uma instância da Classe ETLPipeline, onde cada parâmetro passado é os dados do ETL que irá rodar
+params = {
+    "pipeline_name": "access_log",
+    "source": "URL",
+    "url": "https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt",
+    "table_name_bronze": "b_access_logs",
+    "table_name_silver": "s_access_logs",
+    "table_name_gold": "g_access_logs",
+    "file_name": "access_log.txt",
+    "is_log": True,
+    "sql_silver": """ REGRA SQL AQUI  """,
+    "sql_gold":  """ REGRA SQL AQUI  """
+}
+
+etl = ETLPipeline(spark, **params)
+```
 
 ```python
 #Crie uma instância da Classe ETLPipeline, onde cada parâmetro passado é os dados do ETL que irá rodar
@@ -152,25 +192,6 @@ etl = ETLPipeline(spark,
 )
 ```
 
-3. **Exemplo 2 de como parametrizar as informações:**
-
-```python
-params = {
-    "pipeline_name": "access_log",
-    "source": "URL",
-    "url": "https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt",
-    "table_name_bronze": "b_access_logs",
-    "table_name_silver": "s_access_logs",
-    "table_name_gold": "g_access_logs",
-    "file_name": "access_log.txt",
-    "is_log": True,
-    "sql_silver": """ REGRA SQL AQUI  """,
-    "sql_gold":  """ REGRA SQL AQUI  """
-}
-
-etl = ETLPipeline(spark, **params)
-```
-
 4. **Descrição dos parâmetros para ETLPipeline**
    
 | Parâmetro             | Obrigatório | Tipo    | Descrição                                                                                                                                                                                                                       |
@@ -180,7 +201,7 @@ etl = ETLPipeline(spark, **params)
 | `table_name_bronze`   | Sim         | String  | Nome da tabela a ser criada na camada Bronze.                                                                                                                                                                                    |
 | `table_name_silver`   | Sim         | String  | Nome da tabela a ser criada na camada Silver.                                                                                                                                                                                    |
 | `table_name_gold`     | Sim         | String  | Nome da tabela a ser criada na camada Gold.                                                                                                                                                                                      |
-| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo. Para `URL`, deve incluir extensão `.csv` ou `.txt`.           |
+| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo com sua terminação(Aceitos os tipos `.csv` ou `.txt`). Para `URL` pode ser o qual desejar, porém também deve incluir extensão `.csv` ou `.txt`.           |
 | `source`              | Sim         | String  | Origem dos dados. <br>• `URL`: copia arquivo de uma URL pública. <br>• `UPLOADED`: lê arquivo enviado manualmente via FileStore do Databricks Community.                 |
 | `is_log`              | Sim         | Boolean | Indica se o arquivo segue o formato padrão Apache Web Server Log (WSL). <br>• `True`: é um log Apache. <br>• `False`: outro tipo de dado.                                                                                        |
 | `sql_silver`          | Sim         | String  | Consulta SQL contendo as regras de transformação para geração da tabela Silver.                                                                                                                                                 |
