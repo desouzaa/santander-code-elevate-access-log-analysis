@@ -111,10 +111,27 @@ class ETLPipeline:
         
         df_log = spark.createDataFrame([log_row])
 
-        #Faz o write com mode append da tabela Delta
-        df_log.write.format("delta") \
-            .mode("append") \
-            .saveAsTable("monitoring.execution_logs")
+        try:
+            #Faz o write com mode append da tabela Delta
+            df_log.write.format("delta") \
+                .mode("append") \
+                .saveAsTable("monitoring.execution_logs")
+        except:
+            #Faz o write com mode append da tabela Delta
+            monitoring_table_sql = f"""
+            INSERT INTO monitoring.execution_logs
+            VALUES (
+                '{execution_time}',
+                '{pipeline_name}',
+                '{step}',
+                '{status}',
+                '{error_message.replace("'", "''")}',
+                '{processed_file_path}',
+                {time_elapsed}
+            )
+            """
+            self.spark.sql(monitoring_table_sql)
+            print("✅ Log inserido via comando SQL.")        
 
     #Função que otimiza a tabela bronze gerada
     def otimization_bronze(self):
@@ -176,14 +193,8 @@ class ETLPipeline:
         """
         Esse método executa uma extração de dados de um blob storage via HTTP público anonimamente ou move arquivo da pasta de uploads de acordo com source.
 
-        Parâmetros:
-        - source(str): De onde o arquivo irá ser extraído, "UPLOADED" ou "". O default é "URL"
-        - url(str): URL em que dados vão ser extraídos, pode ser uma API REST ou um file em um storage que aceita via HTTPS público.
-        - path_landing(str): Diretório onde dado será salvo.
-        - pipeline_name(str): Nome do pipeline, usado para controlar execuções na tabela de monitoramento.
-        - file_name(str): Nome do arquivo de origem 
-            
-        
+        Parâmetros: None
+                    
         Retorno: None
         """       
 
@@ -222,50 +233,7 @@ class ETLPipeline:
                             raise e 
                         else:
                             #Espera 10 segundos antes de tentar novametne.
-                            time.sleep(10)
-
-            #Se for api, irá fazer requisição na API do tipo get e salvar uma cópia na landing.
-            elif self.source == "API":    
-                print('🌐Efetuando Request na API...\n')
-                #retry para caso de indisponibilidade temporária
-                for request in range(1, 4):
-                    try:
-                        print(f"📥Tentativa {request}/3\n")
-                                    
-                        #faz o GET
-                        response = requests.get(self.url)
-
-                        #Se nao for 200 ele da erro.
-                        if response.status_code != 200:
-                            raise Exception(f"⚠️Erro HTTP {response.status_code}: {response.text}")
-
-                        #captura o content
-                        content = response.text
-
-                        #Tranforma em JSON
-                        data = json.loads(content) 
-
-                        #T
-                        rdd = spark.sparkContext.parallelize(data)
-
-                        #Cria datafarme
-                        df = spark.read.json(rdd)
-
-                        #salva dataframe em delta
-                        df.write.format("delta").mode("overwrite").save(f"{self.path_landing}{self.file_name}")
-
-                        print("✅Dados salvos com sucesso!...\n")
-                        break
-
-                    except Exception as e:
-                        print(f"⚠️Erro na tentativa {request}: {e}\n")
-                        if request == 3:
-                            print("❌Falha após 3 tentativas. Abortando...\n")
-                            raise e 
-                        else:
-                            #Espera 10 segundos antes de tentar novametne
-                            time.sleep(10)
-
+                            time.sleep(10)           
 
             end_time = time.time()
             time_elapsed = end_time - start_time
@@ -284,19 +252,14 @@ class ETLPipeline:
         """
         Esse método executa a etapa landing to bronze do ETL.
 
-        Parâmetros:
-        - path_landing(str): Diretório landing onde dado está salvo.
-        - path_processed(str): Diretório onde dado processado irá ser movido.           
-        - path_bronze(str): Diretório bronze onde dado será salvo.        
-        - database_bronze(str): Nome do database bronze.        
-        - table_name_bronze(str): Nome para a tabela bronze.  
-        - pipeline_name(str): Nome do pipeline, usado para controlar execuções na tabela de monitoramento.
-        - file_name(str): Nome do arquivo de origem 
+        Parâmetros: None
         
         Retorno: None
         """       
         print('----------Landing to Bronze----------\n')
-        
+
+        print(f'Nome tabela bronze: {self.table_name_bronze}\n')
+               
         #Busca a data hora atual
         now = datetime.now(ZoneInfo('America/Sao_Paulo'))
         start_time = time.time()
@@ -337,13 +300,20 @@ class ETLPipeline:
                                 .withColumn('processed_date', F.to_date(F.lit(now)))
         
             print('🥉Salvando dados na tabela bronze...\n')
-            #Salva a tabela bronze com formato delta, particionado por data
-            df_bronze.write.format('delta') \
+
+            try:
+                #Tenta salvar como tabela(Para funcionar no databricks Community)
+                df_bronze.write.format('delta') \
                 .mode('overwrite') \
                 .option("overwriteSchema", "true") \
                 .partitionBy("processed_date") \
                 .option("path", self.path_bronze) \
                 .saveAsTable(f"{self.database_bronze}.{self.table_name_bronze}")
+
+            except Exception as e:             
+                ##Tenta salvar como path apenas (Para funcionar no databricks oficial) e depois cria tabela
+                df_bronze.write.format("delta").mode("overwrite").saveAsTable(f"{self.database_bronze}.{self.table_name_bronze}")
+     
             
             print('🔄Movendo arquivo processado\n')
             #Move o arquivo já processado para uma pasta de arquivos processados
@@ -367,17 +337,16 @@ class ETLPipeline:
         """
         Esse método executa a etapa bronze to silver do ETL.
 
-        Parâmetros:
-        - path_bronze(str): Diretório bronze onde dado está salvo.      
-        - path_silver(str): Diretório silver onde dado será salvo.        
-        - database_silver(str): Nome do database silver.        
-        - table_name_silver(str): Nome para a tabela silver.  
-        - pipeline_name(str): Nome do pipeline, usado para controlar execuções na tabela de monitoramento.
-        
+        Parâmetros:        
+        None
+
         Retorno: None
         """              
 
         print('----------Bronze to Silver----------\n')
+
+        print(f'Nome tabela bronze: {self.table_name_bronze}\n')
+        print(f'Nome tabela silver: {self.table_name_silver}\n')
 
         #Busca a data hora atual
         now = datetime.now(ZoneInfo('America/Sao_Paulo'))
@@ -387,12 +356,16 @@ class ETLPipeline:
 
             print('🔵Iniciando leitura da bronze...\n')
 
+            
             #Verifica se existe o path
             if not self.path_exists(self.path_bronze):
-                raise Exception(f"⚠️ O arquivo {self.path_bronze} não foi encontrado.\n")
-
-            #Le a tabela bronze
-            df_bronze = spark.read.format('delta').load(self.path_bronze)             
+                print(f"⚠️O arquivo {self.path_bronze} não foi encontrado, então buscando tabela bronze...\n")
+                
+                df_bronze = spark.read.table(f"{self.database_bronze}.{self.table_name_bronze}")
+                   
+            else:            
+                #Le a tabela bronze
+                df_bronze = spark.read.format('delta').load(self.path_bronze)             
 
             if self.is_log is True:
 
@@ -417,6 +390,15 @@ class ETLPipeline:
                             )
                 
                 df_silver_raw = df_silver_raw.withColumn('timestamp', F.to_timestamp(F.col('timestamp'), "dd/MMM/yyyy:HH:mm:ss Z"))
+
+                
+                df_silver_raw = df_silver_raw.withColumn(
+                    "status_code",
+                    F.when(F.col("status_code") == "", None).otherwise(F.col("status_code"))
+                ).withColumn(
+                    "response_size",
+                    F.when(F.col("response_size") == "", None).otherwise(F.col("response_size"))
+                )
                 
                 df_silver = df_silver_raw.select(
                     F.col('client_ip').cast(T.StringType()),
@@ -426,7 +408,7 @@ class ETLPipeline:
                     F.col('endpoint_clean').cast(T.StringType()),
                     F.col('protocol').cast(T.StringType()),
                     F.col('status_code').cast(T.IntegerType()),
-                    F.col('response_size').cast(T.IntegerType()),
+                    F.col('response_size').cast(T.LongType()),
                     F.col('processed_timestamp'),
                     F.col('processed_date')      
                 )
@@ -442,14 +424,18 @@ class ETLPipeline:
                                 .withColumn('processed_date', F.to_date(F.lit(now)))         
 
             print('🥈Salvando dados na tabela silver...\n')
-
-            #Salva a tabela silver com formato delta, particionado por data
-            df_silver.write.format('delta') \
-                .mode('overwrite') \
-                .option("overwriteSchema", "true") \
-                .partitionBy("processed_date") \
-                .option("path", self.path_silver) \
-                .saveAsTable(f"{self.database_silver}.{self.table_name_silver}")
+            
+            try:
+                #Salva a tabela silver com formato delta, particionado por data
+                df_silver.write.format('delta') \
+                    .mode('overwrite') \
+                    .option("overwriteSchema", "true") \
+                    .partitionBy("processed_date") \
+                    .option("path", self.path_silver) \
+                    .saveAsTable(f"{self.database_silver}.{self.table_name_silver}")
+            except Exception as e:             
+                ##Tenta salvar como path apenas (Para funcionar no databricks oficial) e depois cria tabela
+                df_silver.write.format("delta").mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{self.database_silver}.{self.table_name_silver}")
 
             end_time = time.time()
             time_elapsed = end_time - start_time
@@ -469,11 +455,64 @@ class ETLPipeline:
     #Função que faz a transformação final e aplica as regras definidas em sql, para criar a tabela final
     def silver_to_gold(self):
         """
-        Essa função é um placeholder para futura etapa de transformação da camada Silver para Gold.
+        Esse método executa a etapa silver to Gold do ETL.
 
-        Por enquanto, apenas imprime uma mensagem indicando que ainda não foi implementada.
-        """
-        print('🥇Silver to Gold ainda não implementado.\n')
+        Parâmetros:
+        None
+
+        Retorno: None
+
+        """         
+        print('----------Silver to Gold----------\n')
+
+        print(f'Nome tabela silver: {self.table_name_silver}\n')
+        print(f'Nome tabela gold: {self.table_name_gold}\n')
+
+        #Busca a data hora atual
+        now = datetime.now(ZoneInfo('America/Sao_Paulo'))
+        start_time = time.time()
+
+        try:
+
+            print('🔵Iniciando criação da tabela gold...\n')
+   
+            if self.sql_gold is None or self.sql_gold == '' or self.sql_gold == ' ':
+                raise ValueError("Parâmetro SQL está nulo ou inválido!")
+            else:
+                df_gold = self.spark.sql(self.sql_gold)   
+
+            #Cria coluna de controle, para saber data de execução
+            df_gold = df_gold.withColumn('processed_timestamp', F.lit(now))\
+                                .withColumn('processed_date', F.to_date(F.lit(now)))         
+
+            print('🥇Salvando dados na tabela gold...\n')
+            
+            try:
+                #Salva a tabela silver com formato delta, particionado por data
+                df_gold.write.format('delta') \
+                    .mode('overwrite') \
+                    .option("overwriteSchema", "true") \
+                    .partitionBy("processed_date") \
+                    .option("path", self.path_gold) \
+                    .saveAsTable(f"{self.database_gold}.{self.table_name_gold}")
+            except Exception as e:             
+                ##Tenta salvar como path apenas (Para funcionar no databricks oficial) e depois cria tabela
+                df_gold.write.format("delta").mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{self.database_gold}.{self.table_name_gold}")
+
+            end_time = time.time()
+            time_elapsed = end_time - start_time
+            self.save_execution_log(execution_time = now, pipeline_name = self.pipeline_name , step = 'gold', status = 'OK', error_message = '', processed_file_path = self.path_gold, time_elapsed = time_elapsed)
+
+            print('🥇Gold processada com sucesso \n')
+            self.otimization_silver()
+
+
+        except Exception as e:
+            print(f'❌Erro: {e}\n')
+            end_time = time.time()
+            time_elapsed = end_time - start_time
+            self.save_execution_log(execution_time = now, pipeline_name = self.pipeline_name , step = 'gold', status = 'NOTOK', error_message = f'{e}', processed_file_path = self.path_gold, time_elapsed = time_elapsed)
+            raise #Emite erro para parar execução
 
     #Função que exeucuta a orquestração das funções de ETL
     def execute_etl(self, step=4):
@@ -505,14 +544,11 @@ class ETLPipeline:
             if step >= 1:
                 print(f'Fonte a ser extraído dado: {self.source}\n')
                 self.source_to_landing()
-            if step >= 2:
-                print(f'Nome tabela bronze: {self.table_name_bronze}\n')
+            if step >= 2:                
                 self.landing_to_bronze()
             if step >= 3:
-                print(f'Nome tabela silver: {self.table_name_silver}\n')
                 self.bronze_to_silver()
             if step >= 4:
-                print(f'Nome tabela gold: {self.table_name_gold}\n')
                 self.silver_to_gold()
 
             print("✅Execução do ETL finalizada com sucesso!...\n")
