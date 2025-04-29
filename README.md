@@ -109,8 +109,10 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 4. **Upload do Arquivo de Log (opcional):**
    - Clique "Data" → "Add or Upload Data".
    - Faça upload do arquivo de log (caso não utilize a URL pública fornecida).
-   ![Imagem Upload](./documentation/upload_image_1.png)
-   ![Imagem Upload 2](./documentation/upload_image_2.png)
+   - 
+   - ![Imagem Upload](./documentation/upload_image_1.png)
+
+   - ![Imagem Upload 2](./documentation/upload_image_2.png)
 
 5. **Abra o Notebook Run.py:**
    - Clique no notebook "Run.py" pois é ele que será usado para executar o ETL.
