@@ -84,7 +84,7 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 
 Abaixo, a arquitetura utilizada no pipeline ETL:
 
-![Arquitetura](./documentation/Arquitetura.jpg)
+![Arquitetura](./docs/Arquitetura.jpg)
 
 1. **SOURCE**: Fonte de dados, onde os dados que vão ser processados estão no início do processo.
 
@@ -125,12 +125,12 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
 
 1. **Criar Conta no Databricks:**
    - Acesse [Databricks Community Edition](https://community.cloud.databricks.com) e crie uma conta gratuita.
-   - ![create](./documentation/create_acc.png)
+   - ![create](./docs/create_acc.png)
    - Siga o passo a passo indiccado no site
 
 2. **Criar um Cluster:**
    - Após logar, no menu lateral esquerdo, clique em  "Compute"
-   - ![compute](./documentation/compute.png)
+   - ![compute](./docs/compute.png)
    - Após entrar na aba "Compute", no lado direto clice em "Create Compute".
    - ![createcompute](/documentation/create_compute.png)
    - Nomeie o cluster (por exemplo, `code-elevate-cluster`).
@@ -138,20 +138,20 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
 
 3. **Importar os Arquivos:**
    - Acesse "Workspace" → "Users" → [Seu Usuário].
-   - ![users](./documentation/users.png)
+   - ![users](./docs/users.png)
    - Clique com botão direito sobre alguma parte em branco da página → "Import".
    - Importe os arquivos contidos dentro do diretório 'notebooks' presente no repositório:
      - `etl_pipeline.py`
      - `run.py`
-   - ![Import](./documentation/import.png)
+   - ![Import](./docs/import.png)
    - Talvez seja necessário importar um arquivo de cada vez!
 
 4. **Upload do Arquivo de Log (opcional):**
    - No arquivo run.py, já há um exemplo e dados de configuração dos parâmetros para utilizar a extração via HTTP, mas se preferir por executar utilizando o Upload manual via databricks, só seguir os seguintes passos abaixo
    - No canto superior esquerdo do Databricks, clique em  "+ New" → "Add or Upload Data".
-   - ![adddata](./documentation/add_data.png)
+   - ![adddata](./docs/add_data.png)
    - Faça upload do arquivo de log (caso não utilize a URL pública fornecida).
-   - ![adddata2](./documentation/add_data_2.png)
+   - ![adddata2](./docs/add_data_2.png)
 
 5. **Informações Adicionais:**
    - Link para URL com arquivo: "https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt"
@@ -237,7 +237,7 @@ Exemplo de execução Completa
 etl.execute_etl(4)
 ```
 
-- ![etl1](./documentation/etl1.png)
+- ![etl1](./docs/etl1.png)
 
 #### Significado do Parâmetro `step`
 
@@ -300,9 +300,9 @@ etl.log_analysis()
 
 ### Exemplo de saída visual gerada:
 
-![result1](./documentation/result1.png)  
-![result2](./documentation/result2.png)  
-![g1](./documentation/graficos1.png)
+![result1](./docs/result1.png)  
+![result2](./docs/result2.png)  
+![g1](./docs/graficos1.png)
 
 ---
 
@@ -322,8 +322,8 @@ etl.monitoring_analysis()
 
 ### Exemplo de saída:
 
-![monitoring](./documentation/monitoring.png)  
-![g2](./documentation/graficos2.png)
+![monitoring](./docs/monitoring.png)  
+![g2](./docs/graficos2.png)
 
 ---
 
@@ -340,7 +340,7 @@ O pipeline já conta com uma **etapa automatizada de verificação de qualidade*
 
 ### 🖼️ Visualização do resultado:
 
-![quality](./documentation/quality.png)
+![quality](./docs/quality.png)
 
 ---
 
