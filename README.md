@@ -342,12 +342,9 @@ O pipeline já conta com uma **etapa automatizada de verificação de qualidade*
 📌 **Importante:** Atualmente a função foi construída para **analisar exclusivamente logs Apache padrão** (`is_log=True`), mas poderá futuramente ser **expandida para aceitar tipos diferentes de análise**, passando um parâmetro de tipo desejado (ex: json, csv, etc) e as regras correspondentes de análise.
 
 
-### 🖼️ Visualização do resultado:
-
 ![quality](./docs/quality.png)
 
 ---
-
 
 ## Histórico de Versões
 
