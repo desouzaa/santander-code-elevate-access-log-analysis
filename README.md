@@ -7,6 +7,8 @@
 - **Última atualização:** 30 de abril de 2025
 - **Desafio:** Code Elevate Santander
 - **Contato:** rafaellsouzah@gmail.com
+- **Versão:** `v1.0.0`  
+**Status:** Concluído (Primeira versão estável)
 
 
 ## Descrição
@@ -324,4 +326,11 @@ O pipeline já conta com uma **etapa automatizada de verificação de qualidade*
 ![quality](./documentation/quality.png)
 
 ---
+
+
+## Histórico de Versões
+
+| Versão  | Data       | Descrição                          |
+|---------|------------|-------------------------------------|
+| v1.0.0  | 30/04/2025 | Primeira entrega completa do projeto |
 
