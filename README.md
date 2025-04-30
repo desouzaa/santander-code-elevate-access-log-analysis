@@ -314,6 +314,8 @@ etl.log_analysis()
 
 Além da análise de logs, este projeto inclui uma função dedicada à **análise dos dados de execução do pipeline**, permitindo visualizar e monitorar seu histórico de execuções:
 
+- Cada execução de pipeline gera registros de log em uma tabela `monitoring.execution_logs`, permitindo **rastreabilidade e auditoria das execuções realizadas**.
+
 ```python
 etl.monitoring_analysis()
 ```
@@ -343,6 +345,25 @@ O pipeline já conta com uma **etapa automatizada de verificação de qualidade*
 
 
 ![quality](./docs/quality.png)
+
+## Consultar e visualizar o resultado das tabelas geradas em cada etapa
+
+Para visualizar as tabelas geradas na camada Bronze, Silver e Gold, e até mesmo tabelas de monitoramento e qualidade podemos usar duas formas:
+   - Spark SQL 
+   
+ ```sql
+SELECT * FROM quality.quality_checks;
+SELECT * FROM monitoring.execution_logs;
+SELECT * FROM gold.nome_tabela_gold;
+```
+
+- Python API Spark
+
+```python
+df = spark.read.table('gold.nome_tabela_gold')
+display(df)
+```
+
 
 ---
 
