@@ -136,7 +136,7 @@ Além disso, as tabelas foram organizadas para permitir consultas analíticas ef
 
 5. **Informações Adicionais:**
    - Link para URL com arquivo: "https://codeelevatestoragelog.blob.core.windows.net/logs/access_log.txt"
-   - O tipo de arquivo, terminação do file_name, pode ser .csv ou .txt para dados extraídos via URL ou UPLOADED.
+   - O tipo de arquivo, terminação do file_name, pode ser .csv ou .txt para dados extraídos via URL ou UPLOADED, mas deve obedecer o formato de origem em que ele está salvo.
    - O notebook 'run.py' já irá vir configurado para rodar, e com detalhes descritivos de cada etapa em comentários e células markdwown.
   
 
@@ -201,7 +201,7 @@ etl = ETLPipeline(spark,
 | `table_name_bronze`   | Sim         | String  | Nome da tabela a ser criada na camada Bronze.                                                                                                                                                                                    |
 | `table_name_silver`   | Sim         | String  | Nome da tabela a ser criada na camada Silver.                                                                                                                                                                                    |
 | `table_name_gold`     | Sim         | String  | Nome da tabela a ser criada na camada Gold.                                                                                                                                                                                      |
-| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo com sua terminação(Aceitos os tipos `.csv` ou `.txt`). Para `URL` pode ser o qual desejar, porém também deve incluir extensão `.csv` ou `.txt`.           |
+| `file_name`           | Sim         | String  | Nome do arquivo a ser processado. Para `UPLOADED`, deve ser exatamente o nome do arquivo com sua terminação(Aceitos os tipos `.csv` ou `.txt`). Para `URL` pode ser o nome do arquivo que desejar colocar, porém também deve incluir extensão `.csv` ou `.txt` de acordo com tipo do arquivo.           |
 | `source`              | Sim         | String  | Origem dos dados. <br>• `URL`: copia arquivo de uma URL pública. <br>• `UPLOADED`: lê arquivo enviado manualmente via FileStore do Databricks Community.                 |
 | `is_log`              | Sim         | Boolean | Indica se o arquivo segue o formato padrão Apache Web Server Log (WSL). <br>• `True`: é um log Apache. <br>• `False`: outro tipo de dado.                                                                                        |
 | `sql_silver`          | Sim         | String  | Consulta SQL contendo as regras de transformação para geração da tabela Silver.                                                                                                                                                 |
@@ -256,3 +256,13 @@ etl.silver_to_gold()
 
 
 
+
+
+
+#### Documentando 
+
+
+![monitoring](./documentation/monitoring.png)
+
+
+![quality](./documentation/quality.png)
