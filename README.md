@@ -126,7 +126,8 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
 1. **Criar Conta no Databricks:**
    - Acesse [Databricks Community Edition](https://community.cloud.databricks.com) e crie uma conta gratuita.
    - ![create](./docs/create_acc.png)
-   - Siga o passo a passo indiccado no site
+   - Siga o passo a passo indicado.
+   - Caso não possua familiaridade com a ferramente Databricks, a documentação oficial: [Databricks Docs](https://docs.databricks.com/aws/pt/)
 
 2. **Criar um Cluster:**
    - Após logar, no menu lateral esquerdo, clique em  "Compute"
