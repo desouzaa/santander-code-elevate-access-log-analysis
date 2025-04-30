@@ -146,6 +146,9 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
    - ![Import](./docs/import.png)
    - Talvez seja necessário importar um arquivo de cada vez!
 
+📌 **Importante:** Fique atento com o nome do arquivo `etl_pipeline.py` e  `run.py`, pois alguma mudança na nomenclatura pode ocasionar erros.
+
+
 4. **Upload do Arquivo de Log (opcional):**
    - No arquivo run.py, já há um exemplo e dados de configuração dos parâmetros para utilizar a extração via HTTP, mas se preferir por executar utilizando o Upload manual via databricks, só seguir os seguintes passos abaixo
    - No canto superior esquerdo do Databricks, clique em  "+ New" → "Add or Upload Data".
