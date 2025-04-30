@@ -166,7 +166,7 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
 
 2. **Importar o conteúdo do ETLPipeline:**
 
-   - Rode a primeira célula, que contém o seguinte código:
+   - Selecione o Cluster que você criou anteriormente no lado superior direito, e rode a primeira célula, que contém o seguinte código:
 
 ```python
 #Rode a  que contém esse conteúdo antes de todo o restante do código.
