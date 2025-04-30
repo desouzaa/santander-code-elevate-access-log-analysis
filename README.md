@@ -82,6 +82,18 @@ A arquitetura implementada segue o conceito de camadas de dados da Arquitetura M
 
 Além disso, as tabelas foram organizadas para permitir consultas analíticas eficientes.
 
+Abaixo, a arquitetura utilizada no pipeline ETL:
+
+![Arquitetura](./documentation/Arquitetura.jpg)
+
+1. **SOURCE**: Fonte de dados, onde os dados que vão ser processados estão no início do processo.
+
+2. **ETL**: O Databricks faz a execução e orquestração dos jobs e funções que extraem os dados do source, aplicam transformações e salvam os dados no sistema de arquivos do Databricks, simulando um Data Lake.  
+A arquitetura segue o padrão de *Medalhão* (Bronze → Silver → Gold), utilizando Delta Lake.  
+A camada **Gold** contém os dados limpos e com métricas consolidadas.
+
+3. **ANALYTICS**: Após a criação da camada gold, ferramentas de BI como Power BI, Tableau e Qlik podem se conectar e consumir os dados diretamente do Delta Lake.
+
 ---
 
 ## Tecnologias Utilizadas
