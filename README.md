@@ -133,7 +133,7 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
    - Após logar, no menu lateral esquerdo, clique em  "Compute"
    - ![compute](./docs/compute.png)
    - Após entrar na aba "Compute", no lado direto clice em "Create Compute".
-   - ![createcompute](/documentation/create_compute.png)
+   - ![createcompute](./docs/create_compute.png)
    - Nomeie o cluster (por exemplo, `code-elevate-cluster`).
    - Deixe a configuração padrão e clique em "Create Compute".
 
