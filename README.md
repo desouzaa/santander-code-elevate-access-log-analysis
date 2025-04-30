@@ -110,10 +110,15 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
 
 ```plaintext
 /
-├── etl_pipeline.py           #Funções principais do pipeline ETL
-├── run.py                    #Script de execução parametrizada
-├── README.md                  #Documentação do projeto
-├── documentation                  #Diretório com arquivos de documentação usados no README.md
+├── notebooks/
+│   ├── etl_pipeline.py       #Funções principais do pipeline ETL
+│   └── run.py                #Script de execução parametrizada
+├── tests/
+│   └── unity_test.py         #Testes unitários para validação do pipeline
+├── docs/                     #Diretório com imagens e arquivos de apoio da documentação
+├── requirements.txt          #Lista de dependências do projeto(Rodando no Databricks não é necessário executar, já vem por padrão)
+├── README.md                 #Documentação principal do projeto
+
 ```
 
 ## Instalação e Configuração do Ambiente
@@ -135,7 +140,7 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
    - Acesse "Workspace" → "Users" → [Seu Usuário].
    - ![users](./documentation/users.png)
    - Clique com botão direito sobre alguma parte em branco da página → "Import".
-   - Importe os arquivos:
+   - Importe os arquivos contidos dentro do diretório 'notebooks' presente no repositório:
      - `etl_pipeline.py`
      - `run.py`
    - ![Import](./documentation/import.png)
