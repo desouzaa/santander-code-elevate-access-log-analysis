@@ -153,3 +153,7 @@ etl.execute_etl(4)
 # COMMAND ----------
 
 etl.log_analysis()
+
+# COMMAND ----------
+
+etl.monitoring_analysis()

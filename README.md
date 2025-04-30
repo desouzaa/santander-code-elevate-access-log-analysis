@@ -218,6 +218,7 @@ Exemplo de execução Completa
 etl.execute_etl(4)
 ```
 
+- ![etl1](./documentation/etl1.png)
 
 #### Significado do Parâmetro `step`
 
@@ -254,15 +255,73 @@ etl.bronze_to_silver()
 etl.silver_to_gold()
 ```
 
+---
+
+## Análise Visual dos Dados (Logs)
+
+Após a execução completa do pipeline com o comando:
+
+```python
+etl.execute_etl(4)
+```
+
+Execute o comando abaixo para iniciar a análise visual automatizada dos dados:
+
+```python
+etl.log_analysis()
+```
+
+### O que esta função faz?
+
+- Gera visualizações gráficas para as respostas exigidas no desafio.
+- Apresenta uma tabela com as respostas formatadas das análises solicitadas.
+- Utiliza internamente bibliotecas como **Plotly** para apresentar os gráficos de forma rica e interativa.
+
+📌 **Importante:** Atualmente a função foi construída para **analisar exclusivamente logs Apache padrão** (`is_log=True`), mas poderá futuramente ser **expandida para aceitar tipos diferentes de análise**, passando um parâmetro de tipo desejado (ex: json, csv, etc) e as regras correspondentes de análise.
+
+### Exemplo de saída visual gerada:
+
+![result1](./documentation/result1.png)  
+![result2](./documentation/result2.png)  
+![g1](./documentation/graficos1.png)
+
+---
+
+## Análise de Monitoramento de Execuções
+
+Além da análise de logs, este projeto inclui uma função dedicada à **análise dos dados de execução do pipeline**, permitindo visualizar e monitorar seu histórico de execuções:
+
+```python
+etl.monitoring_analysis()
+```
+
+### O que essa função faz?
+
+- Lê a tabela `monitoring.execution_logs`.
+- Gera dashboards com indicadores e gráficos sobre a duração e sucesso das execuções.
+- Ajuda a acompanhar a performance e qualidade da execução do pipeline ao longo do tempo.
+
+### Exemplo de saída:
+
+![monitoring](./documentation/monitoring.png)  
+![g2](./documentation/graficos2.png)
+
+---
+
+## Validações de Qualidade dos Dados (Data Quality)
+
+O pipeline já conta com uma **etapa automatizada de verificação de qualidade** dos dados antes de salvar a **tabela Silver**, garantindo que:
+
+- Nenhum dado com campos obrigatórios nulos (como IP, endpoint, timestamp) seja salvo.
+- A quantidade total de registros seja válida (maior que zero).
+- Cada verificação gera registros de log em uma tabela `quality.data_quality_logs`, permitindo **rastreabilidade e auditoria das verificações realizadas**.
+
+📌 **Importante:** Atualmente a função foi construída para **analisar exclusivamente logs Apache padrão** (`is_log=True`), mas poderá futuramente ser **expandida para aceitar tipos diferentes de análise**, passando um parâmetro de tipo desejado (ex: json, csv, etc) e as regras correspondentes de análise.
 
 
-
-
-
-#### Documentando 
-
-
-![monitoring](./documentation/monitoring.png)
-
+### 🖼️ Visualização do resultado:
 
 ![quality](./documentation/quality.png)
+
+---
+

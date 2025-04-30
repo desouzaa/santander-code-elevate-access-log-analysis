@@ -10,6 +10,7 @@ import requests
 import json
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 
 # COMMAND ----------
 
@@ -119,7 +120,7 @@ class ETLPipeline:
             df_log.write.format("delta") \
                 .mode("append") \
                 .saveAsTable("monitoring.execution_logs")
-            print("✅Log inserido via comando DF.")  
+            print("✅Log inserido via comando DF.\n")  
         except:
             #Faz o write com mode append da tabela Delta
             monitoring_table_sql = f"""
@@ -724,9 +725,6 @@ class ETLPipeline:
         """
         Gerar gráficos com analises para logs
         
-        Parâmetros:        
-        table_gold = Nome da tabela gold de logs Apache a ser usada      
-
         Retorno:
         None
         """
@@ -840,4 +838,61 @@ class ETLPipeline:
         )
 
         fig.show()
+
+    #Função que cria gráficos com análises de logs
+    def monitoring_analysis(self):
+        """
+        Gerar gráficos com analises para monitoramentos             
+
+        Retorno:
+        None
+        """
+        #Leitura da tabela de log de execução e converte para pandas para poder usar nos graficos
+        df_logs = self.spark.table("monitoring.execution_logs")
+
+        #Mostra na tela a tabela
+        display(df_logs)
+
+        df_logs = df_logs.toPandas()
+
+        #Converter a coluna de timestamp para datetime
+        df_logs['execution_time'] = pd.to_datetime(df_logs['execution_time'])
+
+        #Gráfico 1 Duração de cada Step do ETL
+        df_duration = (
+            df_logs.groupby('step')['time_elapsed'] #faz groupby onde tem o tempo de cada step
+            .mean() #média
+            .reset_index()
+            .sort_values(by='time_elapsed', ascending=False) #Orderna de forma decrescente
+        )
+
+        #Aqui cria o grafico de barras, passando o df como dados, o x como step, o y como o tempo,  
+        fig1 = px.bar(
+            df_duration,
+            x='step',
+            y='time_elapsed',
+            color='step',
+            title='⏱️ Duração Média por Step (em segundos)',
+            labels={'time_elapsed': 'Duração(s)', 'step': 'Etapa'}
+        )
+        fig1.show()
+
+        #Gráfico 2 Status de execuções
+
+        #Aqui cria o grafico de barras, passando o df como dados, o x como nome do pipeline  
+        fig2 = px.histogram(
+            df_logs,
+            x='pipeline_name',
+            color='status',
+            barmode='group',
+            title='📊 Status das Execuções por Pipeline',
+            labels={'pipeline_name': 'Pipeline', 'status': 'Status'},
+            color_discrete_map={
+                'OK': 'green',
+                'NOTOK': 'red'
+            }
+        )
+        fig2.show()
+
+        
 
