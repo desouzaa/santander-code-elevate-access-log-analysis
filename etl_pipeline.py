@@ -522,36 +522,37 @@ class ETLPipeline:
                     F.regexp_extract(f'{column_name}', r'\s(\d{3})\s', 1).alias('status_code'),
                     F.regexp_extract(f'{column_name}', r'\s(\d+)$', 1).alias('response_size'),
                     F.col('processed_timestamp'),
-                    F.col('processed_date'))
-                
-                df_silver_raw_2 = df_silver_raw_1.withColumn(
-                    'response_size',
-                    F.when(F.col('response_size') == '-', None).otherwise(F.col('response_size').cast(T.LongType()))
-                )
+                    F.col('processed_date'))                                
                 
                 #Cria uma coluna com valor do endpoint limpo, ou seja sem parametros no final
-                df_silver_raw_3 = df_silver_raw_2.withColumn(
+                df_silver_raw_2 = df_silver_raw_1.withColumn(
                                 "endpoint_clean",
                                 F.when(
                                     F.col("endpoint") == "/", "/"
                                 ).otherwise(
                                     F.regexp_replace(F.split(F.col("endpoint"), "\?").getItem(0), "/$", "")
                                 )
-                            )               
-                
-
-                
+                            )             
+  
                 #Cria coluna de timestamp formatado
-                df_silver_raw_4 = df_silver_raw_3.withColumn('timestamp', F.to_timestamp(F.col('timestamp'), "dd/MMM/yyyy:HH:mm:ss Z"))
+                df_silver_raw_3 = df_silver_raw_2.withColumn('timestamp', F.to_timestamp(F.col('timestamp'), "dd/MMM/yyyy:HH:mm:ss Z"))
 
-                #Corrige os status code nulos e response size nulos se houver
-                df_silver_raw_5 = df_silver_raw_4.withColumn(
+                #Corrige os status code nulos
+                df_silver_raw_4 = df_silver_raw_3.withColumn(
                     "status_code",
                     F.when(F.col("status_code") == "", None).otherwise(F.col("status_code"))
-                )
+                )  
+
+                df_silver_raw_5 = df_silver_raw_4.withColumn(
+                    "response_size",
+                    F.when((F.col("response_size") == "") | (F.col("response_size") == "-"), None)
+                    .otherwise(F.col("response_size"))
+                )   
+
+                df_silver_raw_6 = df_silver_raw_5.withColumn("response_size", F.col("response_size").cast(T.LongType()))
                 
                 #Select final dos dados de log
-                df_silver = df_silver_raw_5.select(
+                df_silver = df_silver_raw_6.select(
                     F.col('client_ip').cast(T.StringType()),
                     F.col('timestamp').cast(T.TimestampType()),
                     F.col('method').cast(T.StringType()),
