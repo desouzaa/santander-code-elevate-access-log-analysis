@@ -150,9 +150,15 @@ etl.execute_etl(4)
 # MAGIC %md
 # MAGIC #### Execute essa célula abaixo com função que gera gráficos visuais com análise dos dados de log
 
+
 # COMMAND ----------
 
 etl.log_analysis()
+
+# COMMAND ----------
+
+# MAGIC %md
+#### Execute essa célula abaixo com a função que gera gráficos visuais com análise dos dados de monitoramento
 
 # COMMAND ----------
 
