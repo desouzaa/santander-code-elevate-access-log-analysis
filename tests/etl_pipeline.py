@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 # COMMAND ----------
+
 #Classe ETLPipeline contém todas as funções necessárias para a realização do ETL
 class ETLPipeline:
     #O construtor recebe parâmetros que irão ser usado nas funções.
@@ -100,44 +101,42 @@ class ETLPipeline:
         processed_file_path(str): Path da execução.  
         time_elapsed(str): Tempo em segundos que levou de processamento.  
         """
+
+        #Cria um dataframe com dados a serem salvos
+        log_row = Row(
+            execution_time=execution_time,
+            pipeline_name=pipeline_name,
+            step=step,
+            status=status,
+            error_message=error_message,
+            processed_file_path=processed_file_path,
+            time_elapsed = time_elapsed
+        )        
+
+        df_log = spark.createDataFrame([log_row])
+
         try:
-            #Cria um dataframe com dados a serem salvos
-            log_row = Row(
-                execution_time=execution_time,
-                pipeline_name=pipeline_name,
-                step=step,
-                status=status,
-                error_message=error_message,
-                processed_file_path=processed_file_path,
-                time_elapsed = time_elapsed
-            )        
-
-            df_log = spark.createDataFrame([log_row])
-
-            try:
-                #Faz o write com mode append da tabela Delta
-                df_log.write.format("delta") \
-                    .mode("append") \
-                    .saveAsTable("monitoring.execution_logs")
-                print("✅Log inserido via comando DF.\n")  
-            except:
-                #Faz o write com mode append da tabela Delta
-                monitoring_table_sql = f"""
-                INSERT INTO monitoring.execution_logs
-                VALUES (
-                    '{execution_time}',
-                    '{pipeline_name}',
-                    '{step}',
-                    '{status}',
-                    '{error_message.replace("'", "''")}',
-                    '{processed_file_path}',
-                    {time_elapsed}
-                )
-                """
-                self.spark.sql(monitoring_table_sql)
-                print("✅Log inserido via comando SQL.")        
-        except Exception as e:
-            print(f"❌Erro ao salvar log: {e}")      
+            #Faz o write com mode append da tabela Delta
+            df_log.write.format("delta") \
+                .mode("append") \
+                .saveAsTable("monitoring.execution_logs")
+            print("✅Log inserido via comando DF.\n")  
+        except:
+            #Faz o write com mode append da tabela Delta
+            monitoring_table_sql = f"""
+            INSERT INTO monitoring.execution_logs
+            VALUES (
+                '{execution_time}',
+                '{pipeline_name}',
+                '{step}',
+                '{status}',
+                '{error_message.replace("'", "''")}',
+                '{processed_file_path}',
+                {time_elapsed}
+            )
+            """
+            self.spark.sql(monitoring_table_sql)
+            print("✅Log inserido via comando SQL.")        
 
     #Função que otimiza a tabela bronze gerada
     def otimization_bronze(self):
@@ -897,3 +896,4 @@ class ETLPipeline:
         fig2.show()
 
         
+
