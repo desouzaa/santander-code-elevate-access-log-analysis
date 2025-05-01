@@ -114,7 +114,8 @@ A camada **Gold** contém os dados limpos e com métricas consolidadas.
 │   ├── etl_pipeline.py       #Funções principais do pipeline ETL
 │   └── run.py                #Script de execução parametrizada
 ├── tests/
-│   └── unity_test.py         #Testes unitários para validação do pipeline
+│   └── test_etl_test.py         #Testes unitários para validação do pipeline
+│   └── etl_pipeline.py         #Cópia das Funções principais do pipeline ETL
 ├── docs/                     #Diretório com imagens e arquivos de apoio da documentação
 ├── requirements.txt          #Lista de dependências do projeto(Rodando no Databricks não é necessário executar, já vem por padrão)
 ├── README.md                 #Documentação principal do projeto
@@ -366,6 +367,50 @@ display(df)
 
 
 ---
+
+
+## Testes Unitários e Validação das Etapas do Pipeline
+
+### Abordagem
+
+Como o projeto foi desenvolvido no ambiente **Databricks Community Edition**, que não suporta execução direta de frameworks como `pytest` dentro de notebooks, os testes foram implementados em formato **manual** utilizando notebooks dedicados com comandos `assert`, validação de tabelas Delta e inspeção de logs de execução.
+
+Cada função principal do pipeline foi testada individualmente em CMDs separados, validando:
+
+- A criação correta das tabelas(bronze, silver, gold)
+- O comportamento esperado frente a entradas válidas e inválidas
+- A persistência dos logs em `monitoring.execution_logs`
+- O tratamento adequado de erros(e salvamento com status `NOTOK`)
+
+---
+
+### Testes Implementados
+
+| Função                | Descrição do teste                                                                 |
+|----------------------|--------------------------------------------------------------------------------------|
+| `safe_mv`            | Testa a movimentação segura de arquivos entre `landing` e `processed`.              |
+| `save_execution_log` | Garante a gravação correta de logs de execução com dados de status, erro e tempo.   |
+| `source_to_landing`  | Testa o fluxo de extração de arquivos do FileStore para a camada de `landing`.      |
+| `landing_to_bronze`  | Verifica a leitura da `landing`, a persistência da `bronze` e a movimentação do arquivo. |
+| `bronze_to_silver`   | Testa a transformação de logs brutos em colunas estruturadas na `silver`.           |
+| `silver_to_gold`     | Executa a SQL definida para gerar a `gold` e verifica agregações e particionamento. |
+
+---
+
+### Localização dos Testes
+
+Todos os testes foram executados e validados manualmente através de notebooks do Databricks.  
+O nome do pipeline utilizado nos testes segue o padrão `test_pipeline`, e os resultados podem ser verificados na tabela de auditoria:
+
+```sql
+SELECT * 
+FROM monitoring.execution_logs 
+WHERE pipeline_name LIKE 'test_pipeline'
+ORDER BY execution_time DESC;
+```
+
+---
+
 
 ## Histórico de Versões
 
