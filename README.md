@@ -372,4 +372,3 @@ display(df)
 | Versão  | Data       | Descrição                          |
 |---------|------------|-------------------------------------|
 | v1.0.0  | 30/04/2025 | Primeira entrega completa do projeto |
-
